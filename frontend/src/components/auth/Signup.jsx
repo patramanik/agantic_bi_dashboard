@@ -52,7 +52,7 @@ export default function Signup() {
           <div className="p-3 bg-emerald-600 rounded-2xl shadow-xl shadow-emerald-600/20 mb-6">
             <Zap className="text-white" size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Register Operative</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Create Account</h1>
           <p className="text-slate-400 mt-2 text-sm font-medium italic">Initialize Neural Identity</p>
         </div>
 
@@ -68,7 +68,7 @@ export default function Signup() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Legal Name</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
             <input
               type="text"
               className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-600 text-sm"
@@ -79,7 +79,7 @@ export default function Signup() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Secure Email (Primary ID)</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email</label>
             <input
               type="email"
               className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-600 text-sm"
@@ -119,13 +119,13 @@ export default function Signup() {
             disabled={loading}
             className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/40 disabled:opacity-50 mt-4"
           >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <><ShieldCheck size={20} /> Deploy Credentials</>}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <><ShieldCheck size={20} /> Create Account</>}
           </button>
         </form>
 
         <div className="mt-8 text-center border-t border-white/5 pt-8">
           <p className="text-slate-500 text-xs font-medium">
-            Already verified?{' '}
+            Already have an account?{' '}
             <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-bold ml-1 inline-flex items-center gap-1 group">
               <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" /> Sign In
             </Link>

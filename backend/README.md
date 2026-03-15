@@ -67,11 +67,20 @@ python -m venv venv
     python -m venv venv
     .\venv\Scripts\Activate.ps1
     ```
+  - **For Run venv**:
+    ```bash
+    source venv/Scripts/activate
+    ``` 
+
   - **For Git Bash / MINGW64**:
     ```bash
     python -m venv venv
     source venv/Scripts/activate
     ```
+  - **For Run venv**:
+    ```bash
+    source venv/Scripts/activate
+    ```  
 
 ### Step 3 — Install dependencies
 

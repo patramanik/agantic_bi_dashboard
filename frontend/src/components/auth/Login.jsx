@@ -41,7 +41,7 @@ export default function Login() {
           <div className="p-3 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-600/20 mb-6">
             <Zap className="text-white" size={32} />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Access Control</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Sign In</h1>
           <p className="text-slate-400 mt-2 text-sm font-medium italic">Neural BI Synthesis Portal</p>
         </div>
 
@@ -57,7 +57,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Identity (Email)</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Email</label>
             <input
               type="text"
               className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-600"
@@ -68,7 +68,7 @@ export default function Login() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Protocol</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Password</label>
             <input
               type="password"
               className="w-full bg-white/5 border border-white/5 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-600"
@@ -84,15 +84,15 @@ export default function Login() {
             disabled={loading}
             className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/40 disabled:opacity-50"
           >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <><LogIn size={20} /> Authorize Session</>}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : <><LogIn size={20} /> Sign In</>}
           </button>
         </form>
 
         <div className="mt-10 text-center">
           <p className="text-slate-500 text-xs font-medium">
-            New operative?{' '}
+            New user?{' '}
             <Link to="/signup" className="text-indigo-400 hover:text-indigo-300 font-bold ml-1 inline-flex items-center gap-1 group">
-              Register Credentials <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+              Register <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </p>
         </div>
