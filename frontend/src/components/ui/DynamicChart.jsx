@@ -63,8 +63,8 @@ const DynamicChart = ({ data, type, title }) => {
         type: 'scatter',
         mode: 'lines',
         fill: type === 'area' ? 'tozeroy' : 'none',
-        line: { color: '#10b981', width: 3, shape: 'spline' },
-        fillcolor: 'rgba(16, 185, 129, 0.1)'
+        line: { color: '#818cf8', width: 3, shape: 'spline' },
+        fillcolor: 'rgba(129, 140, 248, 0.1)'
       }];
     } else if (type === 'scatter') {
       plotData = [{

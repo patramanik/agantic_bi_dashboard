@@ -111,12 +111,34 @@ function Dashboard() {
 
     try {
       const response = await queryData(msg, fileId);
+      
       if (response.data.viz === 'dashboard') {
         setMetrics(response.data.data.metrics);
         setVisualizations(response.data.data.visualizations);
+        setCurrentAnalysis(null);
+      } else if (response.data.viz !== 'table') {
+        // For specific charts requested via chat, we want to show them prominently 
+        // but maybe also allow pinning them to the dashboard.
+        // For now, let's show as current analysis AND add to a "Recent Insights" list if unique
+        setCurrentAnalysis(response.data);
+        
+        // Optionally append to visualizations if not already there
+        setVisualizations(prev => {
+            const exists = prev.some(v => v.title === response.data.answer);
+            if (!exists) {
+                return [{
+                    title: response.data.answer,
+                    viz: response.data.viz,
+                    data: response.data.data,
+                    isChatGenerated: true
+                }, ...prev];
+            }
+            return prev;
+        });
       } else {
         setCurrentAnalysis(response.data);
       }
+
       setMessages(prev => [...prev, { 
         role: 'ai', 
         content: response.data.answer,
@@ -254,19 +276,30 @@ function Dashboard() {
           )}
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20 px-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-20 px-1">
           {visualizations.length > 0 ? visualizations.map((v, i) => (
-              <div key={i} className="glass-panel h-[500px] p-8 flex flex-col group relative">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 italic">
-                    {v.viz === 'pie' ? <PieIcon size={14} className="text-emerald-500" /> : <LayoutGrid size={14} className="text-indigo-500" />}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                key={i} 
+                className={`glass-panel h-[450px] p-6 flex flex-col group relative ${v.isChatGenerated ? 'border-indigo-500/40 shadow-lg shadow-indigo-500/5' : ''}`}
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2 italic truncate pr-4">
+                    {v.viz === 'pie' ? <PieIcon size={12} className="text-emerald-500" /> : 
+                     v.viz === 'area' ? <TrendingUp size={12} className="text-indigo-500" /> :
+                     <LayoutGrid size={12} className="text-indigo-500" />}
                     {v.title}
                   </h3>
+                  {v.isChatGenerated && (
+                    <span className="text-[8px] font-mono bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/20 uppercase">Pin</span>
+                  )}
                 </div>
-                <div className="flex-1 bg-black/20 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center p-4">
+                <div className="flex-1 bg-black/20 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center p-2">
                   <DynamicChart data={v.data} type={v.viz} title={v.title} />
                 </div>
-              </div>
+              </motion.div>
           )) : currentAnalysis ? (
             <div className="glass-panel col-span-full h-[550px] p-8 flex flex-col">
               <div className="flex justify-between items-center mb-6">
@@ -281,8 +314,11 @@ function Dashboard() {
             </div>
           ) : (
             <div className="glass-panel col-span-full h-[400px] flex flex-col items-center justify-center text-slate-600 font-bold italic opacity-30 border-dashed border-slate-800">
-               <Zap size={64} className="mb-4" />
-               NEURAL CORE READY
+               <Zap size={64} className="mb-4 animate-pulse" />
+               <div className="text-center">
+                 <p className="tracking-[0.5em] mb-2">NEURAL CORE READY</p>
+                 <p className="text-[10px] opacity-50 not-italic">Connect data source to initialize synthesis</p>
+               </div>
             </div>
           )}
         </div>
