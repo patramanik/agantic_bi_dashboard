@@ -1,0 +1,30 @@
+# Python virtual environment
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.eggs/
+*.whl
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# SQLite databases
+*.db
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints
+

@@ -1,0 +1,51 @@
+Date,Category,Region,Product,Sales,Profit,Quantity,Discount,Segment,Priority,Status
+2024-01-01,Electronics,North,Laptop,1200,300,1,0.0,Corporate,High,Shipped
+2024-01-02,Furniture,South,Chair,450,80,4,0.1,Consumer,Medium,Processing
+2024-01-03,Electronics,East,Smartphone,800,200,1,0.0,Corporate,High,Shipped
+2024-01-04,Clothing,West,T-Shirt,25,10,2,0.0,Consumer,Low,Delivered
+2024-01-05,Groceries,North,Apples,50,15,10,0.0,Home Office,High,Delivered
+2024-01-06,Electronics,South,Tablet,600,150,1,0.05,Corporate,Medium,Shipped
+2024-01-07,Furniture,East,Table,300,-50,1,0.2,Home Office,High,Cancelled
+2024-01-08,Clothing,West,Jeans,120,40,2,0.0,Consumer,Medium,Shipped
+2024-01-09,Groceries,North,Milk,40,10,8,0.0,Home Office,Low,Delivered
+2024-01-10,Electronics,South,Monitor,250,60,1,0.0,Corporate,Low,Processing
+2024-02-01,Electronics,North,Laptop,1300,350,1,0.0,Corporate,High,Shipped
+2024-02-02,Furniture,South,Sofa,900,150,1,0.15,Consumer,High,Delivered
+2024-02-03,Clothing,East,Jacket,200,70,1,0.0,Corporate,Medium,Shipped
+2024-02-04,Groceries,West,Bread,30,5,12,0.0,Consumer,Low,Delivered
+2024-02-05,Electronics,North,Headphones,150,45,2,0.0,Home Office,Medium,Shipped
+2024-02-06,Furniture,South,Desk,500,120,1,0.1,Consumer,High,Processing
+2024-02-07,Clothing,East,Shoes,180,60,1,0.0,Consumer,Medium,Delivered
+2024-02-08,Groceries,West,Orange Juice,60,20,6,0.0,Corporate,Low,Shipped
+2024-02-09,Electronics,North,Mouse,45,15,3,0.0,Home Office,Low,Delivered
+2024-02-10,Furniture,South,Cabinet,400,100,1,0.0,Corporate,Medium,Shipped
+2024-03-01,Electronics,North,Laptop,1100,280,1,0.0,Corporate,High,Shipped
+2024-03-02,Furniture,South,Ottoman,150,30,1,0.0,Consumer,Low,Delivered
+2024-03-03,Clothing,East,Shorts,60,25,2,0.0,Consumer,Low,Shipped
+2024-03-04,Groceries,West,Eggs,24,6,2,0.0,Corporate,Medium,Delivered
+2024-03-05,Electronics,North,Camera,750,180,1,0.05,Home Office,High,Processing
+2024-03-06,Furniture,South,Bookshelf,350,90,1,0.0,Corporate,Medium,Shipped
+2024-03-07,Clothing,East,Dress,250,100,1,0.0,Home Office,High,Delivered
+2024-03-08,Groceries,West,Pasta,15,4,5,0.0,Consumer,Low,Shipped
+2024-03-09,Electronics,North,Printer,220,50,1,0.1,Corporate,Medium,Processing
+2024-03-10,Furniture,South,Lamp,80,25,2,0.0,Home Office,Low,Delivered
+2024-04-01,Electronics,North,Laptop,1500,400,1,0.0,Corporate,High,Shipped
+2024-04-02,Furniture,South,Recliner,600,120,1,0.1,Consumer,Medium,Delivered
+2024-04-03,Clothing,East,Sweater,140,50,1,0.0,Corporate,Medium,Shipped
+2024-04-04,Groceries,West,Cereal,45,10,3,0.0,Consumer,Low,Delivered
+2024-04-05,Electronics,North,Keyboard,100,30,1,0.0,Home Office,Medium,Shipped
+2024-04-06,Furniture,South,Rug,280,70,1,0.05,Consumer,Low,Delivered
+2024-04-07,Clothing,East,Hat,35,15,1,0.0,Corporate,Low,Shipped
+2024-04-08,Groceries,West,Coffee,80,25,2,0.0,Home Office,High,Delivered
+2024-04-10,Electronics,South,Speakers,120,40,2,0.0,Corporate,Medium,Shipped
+2024-05-01,Electronics,North,Laptop,1400,370,1,0.0,Corporate,High,Shipped
+2024-05-02,Furniture,South,Bench,200,40,1,0.0,Consumer,Low,Delivered
+2024-05-03,Clothing,East,Tie,40,20,1,0.0,Corporate,Low,Shipped
+2024-05-04,Groceries,West,Tea,35,12,3,0.0,Consumer,Low,Delivered
+2024-05-05,Electronics,North,Hard Drive,120,35,1,0.0,Home Office,Medium,Shipped
+2024-05-06,Furniture,South,Mirror,180,45,1,0.0,Consumer,Medium,Delivered
+2024-05-07,Clothing,East,Belt,30,12,1,0.0,Corporate,Low,Shipped
+2024-05-08,Groceries,West,Honey,70,20,2,0.0,Home Office,Medium,Delivered
+2024-06-01,Electronics,North,Laptop,1250,320,1,0.0,Corporate,High,Shipped
+2024-06-02,Furniture,South,Stool,90,20,1,0.0,Consumer,Low,Delivered
+2024-06-03,Clothing,East,Socks,15,5,3,0.0,Corporate,Low,Shipped

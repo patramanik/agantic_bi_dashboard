@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6366f1;
+  --color-primary-hover: #818cf8;
+  --color-secondary: #0f172a;
+  --color-bg-dark: #020617;
+  --color-accent: #10b981;
+}
+
+@layer base {
+  body {
+    @apply bg-[#020617] text-slate-100 font-sans antialiased overflow-hidden h-screen;
+    background: radial-gradient(circle at top left, #0f172a, #020617);
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-slate-900/65 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .chat-bubble-ai {
+    @apply bg-slate-800/80 p-4 rounded-2xl rounded-bl-none text-sm leading-relaxed border border-white/5;
+  }
+
+  .chat-bubble-user {
+    @apply bg-indigo-600 p-4 rounded-2xl rounded-br-none text-sm leading-relaxed text-white;
+  }
+
+  .suggestion-pill {
+    @apply whitespace-nowrap px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-medium text-indigo-400 transition-all hover:bg-indigo-600 hover:text-white hover:scale-105 active:scale-95;
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20;
+}
