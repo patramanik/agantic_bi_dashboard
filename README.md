@@ -1,16 +1,11 @@
-# Conversational BI Dashboard - Runner Guide
+# Neural BI - AI-Powered Analytics Dashboard
 
-This project is an AI-powered conversational business intelligence dashboard developed for the GfG HackFest 2024.
-
-## Prerequisites
-- Python 3.10+
-- Node.js 18+
-- npm
+This project is an AI-powered conversational business intelligence dashboard named **Neural BI**, developed for the GfG HackFest 2024.
 
 ## Project Structure
 ```text
-/backend  - FastAPI server with AI logic and SQLite database
-/frontend - React JS (Vite) application with glassmorphic UI
+/backend  - FastAPI server with AI logic and database
+/frontend - React JS (Vite) application with Neural glassmorphic UI
 ```
 
 ## 1. Backend Setup (FastAPI)

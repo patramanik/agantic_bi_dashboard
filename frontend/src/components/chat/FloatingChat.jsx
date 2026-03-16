@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Send, MessageSquare, Loader2, X, ChevronRight } from 'lucide-react';
+import { Send, MessageSquare, Loader2, X, ChevronRight, Upload } from 'lucide-react';
 import QuickSuggestions from './QuickSuggestions';
 
 const FloatingChat = ({ 
@@ -10,7 +10,8 @@ const FloatingChat = ({
   handleAction, 
   fileId,
   input,
-  setInput
+  setInput,
+  onUploadTrigger
 }) => {
   const scrollRef = useRef(null);
 
@@ -70,6 +71,13 @@ const FloatingChat = ({
           <div className="p-4 bg-slate-900/50 border-top border-white/5">
             {fileId && <QuickSuggestions onSelect={handleAction} disabled={loading} />}
             <div className="mt-3 flex gap-2">
+              <button 
+                onClick={onUploadTrigger}
+                className="p-2.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-xl transition-all border border-white/5 active:scale-95"
+                title="Upload Source"
+              >
+                <Upload size={18} />
+              </button>
               <input 
                 type="text" 
                 value={input}
@@ -77,7 +85,7 @@ const FloatingChat = ({
                 onKeyDown={(e) => e.key === 'Enter' && handleAction(input)}
                 placeholder={fileId ? "Enter request..." : "Connect data first..."}
                 className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-indigo-500/50 transition-colors"
-                disabled={!fileId || loading}
+                disabled={!fileId && messages.length > 0 && messages[0].role === 'ai' && messages[0].content.includes('Connect your data')} // Allow input if no data yet? Actually, the user can only use chat if data is connected based on handleAction logic.
               />
               <button 
                 onClick={() => handleAction(input)}
