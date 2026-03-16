@@ -33,14 +33,14 @@ backend/
 
 ## ⚙️ Tech Stack
 
-| Layer        | Technology                     |
-|--------------|--------------------------------|
-| Framework    | FastAPI 0.135                  |
-| Database     | PostgreSQL 16 + SQLAlchemy 2.0 |
-| Auth         | JWT (python-jose) + passlib    |
-| Data         | Pandas, NumPy                  |
-| AI/LLM       | OpenAI API                     |
-| Server       | Uvicorn                        |
+| Layer        | Technology                                     |
+|--------------|------------------------------------------------|
+| Framework    | FastAPI 0.135                                  |
+| Database     | PostgreSQL 16 (Primary) / SQLite (Fallback)    |
+| Auth         | JWT (python-jose) + passlib                    |
+| Data         | Pandas, NumPy                                  |
+| AI/LLM       | OpenAI API                                     |
+| Server       | Uvicorn                                        |
 
 ---
 
@@ -49,7 +49,7 @@ backend/
 ### Step 1 — Prerequisites
 
 - Python 3.11+
-- PostgreSQL 16 running locally
+- PostgreSQL 16 (Optional, but recommended for production)
 - Git
 
 ### Step 2 — Clone & create virtual environment
@@ -126,7 +126,30 @@ python run.py
 Server will start at: **http://127.0.0.1:8000**  
 Swagger API Docs: **http://127.0.0.1:8000/docs**
 
-> Tables are created automatically on startup — no Alembic needed.
+> **SQLite Fallback**: If you don't have PostgreSQL installed or haven't configured the `DATABASE_URL`, the system will automatically create a local `app.db` file in the backend root.
+
+---
+
+## 🗄️ Database & Migrations
+
+### Automatic Migration
+This project uses a **Startup Auto-Migration** strategy. 
+- When the server starts (`python run.py`), SQLAlchemy checks for existing tables and creates any missing ones.
+- **No Manual Command Needed**: You don't need to run `alembic upgrade head`.
+
+### PostgreSQL vs SQLite
+The backend is designed to be "plug-and-play":
+1. **PostgreSQL**: Used if `DATABASE_URL` is set in `.env` and the service is reachable.
+2. **SQLite**: Automatically used as a fallback if PostgreSQL is unavailable. This is ideal for local development.
+
+### Resetting the Database
+To perform a "hard reset" of your data:
+- **SQLite**: Delete the `app.db` file and restart the server.
+- **PostgreSQL**: Drop and recreate the database:
+  ```sql
+  DROP DATABASE agentic_bi;
+  CREATE DATABASE agentic_bi;
+  ```
 
 ---
 

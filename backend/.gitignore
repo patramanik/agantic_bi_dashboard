@@ -28,3 +28,6 @@ dist/
 # Jupyter
 .ipynb_checkpoints
 
+# User uploads
+uploads/
+
