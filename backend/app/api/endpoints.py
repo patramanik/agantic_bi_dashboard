@@ -105,16 +105,16 @@ async def process_query(
     - **file_id**: Target dataset identifier.
     """
     try:
+        snapshot = db.query(DataSnapshot).filter(
+            DataSnapshot.filename == file_id,
+            DataSnapshot.user_id == current_user.id
+        ).first()
+
+        if not snapshot or not snapshot.file_path:
+            raise HTTPException(status_code=404, detail="Data not found for this user.")
+
         cache_key = (current_user.id, file_id)
         if cache_key not in df_cache:
-            snapshot = db.query(DataSnapshot).filter(
-                DataSnapshot.filename == file_id,
-                DataSnapshot.user_id == current_user.id
-            ).first()
-            
-            if not snapshot or not snapshot.file_path:
-                raise HTTPException(status_code=404, detail="Data not found for this user.")
-            
             p = Path(snapshot.file_path)
             if p.suffix == '.csv':
                 try:
@@ -131,7 +131,8 @@ async def process_query(
             query=query,
             response=analysis.get("answer", ""),
             viz_type=analysis.get("viz", "table"),
-            user_id=current_user.id
+            user_id=current_user.id,
+            snapshot_id=snapshot.id
         )
         db.add(log)
         db.commit()
@@ -155,13 +156,24 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 @router.get("/history", summary="Access Neural Signal History")
 async def get_history(
+    file_id: str = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Retrieve the last 50 query/response signals synthesized by the operative.
+    Retrieve history synthesized for a specific dataset or all datasets.
     """
-    logs = db.query(QueryLog).filter(QueryLog.user_id == current_user.id).order_by(QueryLog.created_at.desc()).limit(50).all()
+    query = db.query(QueryLog).filter(QueryLog.user_id == current_user.id)
+    
+    if file_id:
+        snapshot = db.query(DataSnapshot).filter(
+            DataSnapshot.filename == file_id,
+            DataSnapshot.user_id == current_user.id
+        ).first()
+        if snapshot:
+            query = query.filter(QueryLog.snapshot_id == snapshot.id)
+    
+    logs = query.order_by(QueryLog.created_at.desc()).limit(50).all()
     return logs
 
 @router.get("/datasets", summary="List Connected Matrix Assets")
@@ -206,3 +218,36 @@ async def delete_dataset(
         return {"message": "Dataset and history deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Deletion error: {str(e)}")
+
+@router.get("/suggestions/{file_id}", summary="Generate Dynamic Neural Prompts")
+async def get_suggestions(
+    file_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate diverse, insightful prompt suggestions tailored to the specific dataset matrix.
+    """
+    try:
+        cache_key = (current_user.id, file_id)
+        if cache_key not in df_cache:
+            snapshot = db.query(DataSnapshot).filter(
+                DataSnapshot.filename == file_id,
+                DataSnapshot.user_id == current_user.id
+            ).first()
+            
+            if not snapshot or not snapshot.file_path:
+                raise HTTPException(status_code=404, detail="Dataset not found")
+            
+            p = Path(snapshot.file_path)
+            if p.suffix == '.csv':
+                try: df_cache[cache_key] = pd.read_csv(p, encoding='utf-8')
+                except: df_cache[cache_key] = pd.read_csv(p, encoding='latin-1')
+            else:
+                df_cache[cache_key] = pd.read_excel(p)
+        
+        df = df_cache[cache_key]
+        suggestions = agent.generate_suggestions(df)
+        return suggestions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate suggestions: {str(e)}")

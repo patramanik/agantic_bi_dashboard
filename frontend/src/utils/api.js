@@ -28,10 +28,11 @@ export const uploadFile = (formData) => api.post('/upload', formData);
 export const queryData = (query, fileId) => api.post('/query', null, { 
   params: { query, file_id: fileId } 
 });
+export const getSuggestions = (fileId) => api.get(`/suggestions/${fileId}`);
 
 // Management endpoints
 export const getDatasets = () => api.get('/datasets');
-export const getHistory = () => api.get('/history');
+export const getHistory = (fileId) => api.get('/history', { params: { file_id: fileId } });
 export const deleteDataset = (filename) => api.delete(`/datasets/${filename}`);
 
 export default api;

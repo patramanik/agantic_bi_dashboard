@@ -1,13 +1,9 @@
 import React from 'react';
 
-const QuickSuggestions = ({ onSelect, disabled }) => {
-  const suggestions = [
-    "Overall metrics summary",
-    "Show bar chart",
-    "Sales distribution pie",
-    "Top 10 categories",
-    "Trend analysis"
-  ];
+const QuickSuggestions = ({ onSelect, disabled, suggestions }) => {
+  if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) {
+    return null;
+  }
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">

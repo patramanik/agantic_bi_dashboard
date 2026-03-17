@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Send, MessageSquare, Loader2, X, ChevronRight, Upload } from 'lucide-react';
 import QuickSuggestions from './QuickSuggestions';
+import { getSuggestions } from '../../utils/api';
 
 const FloatingChat = ({ 
   isChatOpen, 
@@ -14,6 +15,21 @@ const FloatingChat = ({
   onUploadTrigger
 }) => {
   const scrollRef = useRef(null);
+  const [dynamicSuggestions, setDynamicSuggestions] = React.useState([]);
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = React.useState(false);
+
+  useEffect(() => {
+    if (fileId) {
+      setIsFetchingSuggestions(true);
+      getSuggestions(fileId)
+        .then(res => setDynamicSuggestions(res.data))
+        .catch(err => console.error("Failed to fetch suggestions:", err))
+        .finally(() => setIsFetchingSuggestions(false));
+    } else {
+      setDynamicSuggestions([]);
+      setIsFetchingSuggestions(false);
+    }
+  }, [fileId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -69,7 +85,14 @@ const FloatingChat = ({
 
           {/* Chat Footer */}
           <div className="p-4 bg-slate-900/50 border-top border-white/5">
-            {fileId && <QuickSuggestions onSelect={handleAction} disabled={loading} />}
+            {isFetchingSuggestions ? (
+              <div className="flex gap-2 items-center text-[11px] text-slate-400 font-medium animate-pulse mb-3">
+                <Loader2 size={12} className="animate-spin text-indigo-400" />
+                Generating neural prompts...
+              </div>
+            ) : (
+              fileId && <QuickSuggestions onSelect={handleAction} disabled={loading} suggestions={dynamicSuggestions} />
+            )}
             <div className="mt-3 flex gap-2">
               <button 
                 onClick={onUploadTrigger}

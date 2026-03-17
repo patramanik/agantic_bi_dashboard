@@ -31,6 +31,7 @@ class DataSnapshot(Base):
     
     user_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="snapshots")
+    logs = relationship("QueryLog", back_populates="snapshot", cascade="all, delete-orphan")
 
 class QueryLog(Base):
     __tablename__ = "query_logs"
@@ -42,4 +43,7 @@ class QueryLog(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     user_id = Column(Integer, ForeignKey("users.id"))
+    snapshot_id = Column(Integer, ForeignKey("data_snapshots.id"))
+    
     user = relationship("User", back_populates="logs")
+    snapshot = relationship("DataSnapshot", back_populates="logs")

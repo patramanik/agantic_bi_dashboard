@@ -1,7 +1,9 @@
 import pandas as pd
 import openai
 import os
-from typing import Dict, Any
+import json
+import re
+from typing import Dict, Any, List
 
 class BIAgent:
     def __init__(self, api_key: str = None):
@@ -54,13 +56,9 @@ class BIAgent:
 
         # 2. Identify Primary Visualizations
         visualizations = []
-        
-        # Time Series
         time_cols = [c for c in df.columns if any(key in c.lower() for key in ["date", "year", "month", "time", "day", "orderdate"])]
-        # Category tracking
         top_cats = [c for c in cat_df.columns if df[c].nunique() < 30]
         
-        # Trend over time (Area/Line)
         if time_cols and found_hero_cols:
             for i, t_col in enumerate(time_cols[:2]):
                 if i < len(found_hero_cols):
@@ -71,7 +69,6 @@ class BIAgent:
                         "metadata": {"x": t_col, "y": found_hero_cols[i]}
                     })
 
-        # Distribution/Composition (Pie)
         if top_cats and found_hero_cols:
             for i, c_col in enumerate(top_cats[:2]):
                 viz_type = "pie" if df[c_col].nunique() <= 10 else "bar"
@@ -83,37 +80,41 @@ class BIAgent:
                     "metadata": {"x": c_col, "y": h_col}
                 })
             
-        # Comparisons (Bar)
-        if len(top_cats) > 2 and found_hero_cols:
-            c_col = top_cats[2]
-            h_col = found_hero_cols[0]
-            visualizations.append({
-                "title": f"Top segments in {c_col} by {h_col}",
-                "viz": "bar",
-                "data": self._clean_data(df.groupby(c_col)[h_col].sum().reset_index().nlargest(12, h_col)),
-                "metadata": {"x": c_col, "y": h_col}
-            })
-
-        # Correlation (Scatter)
-        if len(found_hero_cols) >= 2:
-            visualizations.append({
-                "title": f"Correlation: {found_hero_cols[0]} vs {found_hero_cols[1]}",
-                "viz": "scatter",
-                "data": self._clean_data(df[[found_hero_cols[0], found_hero_cols[1]]].dropna().head(200)),
-                "metadata": {"x": found_hero_cols[0], "y": found_hero_cols[1]}
-            })
-
         return {
             "metrics": metrics,
             "visualizations": visualizations
         }
 
+    def _call_llm(self, prompt: str) -> Dict[str, Any]:
+        """Call LLM to get structured insight strategy."""
+        if not self.api_key:
+            return None
+            
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a professional Data Analyst. Return valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"} if hasattr(openai, 'ChatCompletion') else None
+            )
+            content = response.choices[0].message.content
+            # Basic JSON extraction in case it's wrapped in markdown
+            json_match = re.search(r'\{.*\}', content, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            return json.loads(content)
+        except Exception as e:
+            print(f"LLM Error: {e}")
+            return None
+
     def analyze_query(self, query: str, df: pd.DataFrame) -> Dict[str, Any]:
         query_lower = query.lower()
-        cols = list(df.columns)
         
-        # Detect if asking for the initial summary/dashboard
-        if any(word in query_lower for word in ["kpi", "metrics", "summary", "dashboard", "overall", "full profile"]):
+        # More robust keyword matching for profiling fallback (includes typos like 'dashbord')
+        kpi_keywords = ["kpi", "metrics", "summary", "dashboard", "dashbord", "overall", "profile", "overview"]
+        if any(word in query_lower for word in kpi_keywords):
             profile = self.profile_dataset(df)
             return {
                 "answer": "Dashboard synthesized. Neural profiling has identified these key insights and trends across your dataset.",
@@ -121,76 +122,132 @@ class BIAgent:
                 "data": profile,
                 "metadata": {"rows": len(df)}
             }
-        
-        # Viz detection
-        viz_type = "bar"
-        if any(word in query_lower for word in ["pie", "ratio", "breakdown", "distribution", "proportion"]):
-            viz_type = "pie"
-        elif any(word in query_lower for word in ["trend", "line", "over time", "history", "area", "growth"]):
-            viz_type = "line" if "area" not in query_lower else "area"
-        elif any(word in query_lower for word in ["scatter", "correlation", "relationship", "versus", "vs"]):
-            viz_type = "scatter"
-        elif any(word in query_lower for word in ["list", "table", "raw", "data"]):
-            viz_type = "table"
 
-        # Column identification
-        found_cols = [c for c in cols if c.lower() in query_lower]
-        numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
-        cat_cols = df.select_dtypes(exclude=['number']).columns.tolist()
+        # Context for LLM
+        cols_info = {col: str(df[col].dtype) for col in df.columns}
+        cat_samples = {col: df[col].dropna().unique()[:5].tolist() for col in df.select_dtypes(exclude=['number']).columns[:10]}
         
-        # Logic to find the best match for X and Y axes
-        target_cat = next((c for c in found_cols if c in cat_cols), None)
-        target_num = next((c for c in found_cols if c in numeric_cols), None)
+        prompt = f"""
+        User Question: "{query}"
+        Dataset Columns: {cols_info}
+        Category Samples: {cat_samples}
         
-        # Fallbacks
-        if not target_cat:
-            time_cols = [c for c in cat_cols if any(k in c.lower() for k in ["date", "year", "month", "time"])]
-            target_cat = time_cols[0] if time_cols else (cat_cols[0] if cat_cols else None)
+        Act as a Data Scientist. Plan a multi-visualization dashboard to answer this question.
+        Return a JSON object with:
+        "summary": A brief textual answer to the query.
+        "vizzes": A list of objects, each with:
+          - "type": "bar", "line", "area", "pie", "scatter", or "table"
+          - "title": A descriptive title
+          - "x": The column for X-axis
+          - "y": The column for Y-axis (numeric)
+          - "agg": "sum", "mean", or "count"
+          - "filter": Optional string for filtering (e.g. "Region == 'West'")
+        """
         
-        if not target_num:
-            target_num = numeric_cols[0] if numeric_cols else None
-
-        result = {}
-        if target_cat and target_num:
-            try:
-                if viz_type == "scatter":
-                    target_num2 = next((c for c in found_cols if c in numeric_cols and c != target_num), None)
-                    if not target_num2 and len(numeric_cols) > 1:
-                        target_num2 = numeric_cols[1]
-                    
-                    if target_num2:
-                        result_df = df[[target_num, target_num2]].dropna().head(300)
-                        result = {
-                            "answer": f"Displaying correlation between {target_num} and {target_num2}.",
-                            "viz": "scatter",
-                            "data": result_df,
-                            "metadata": {"x": target_num, "y": target_num2}
-                        }
-                else:
-                    # Grouping logic
-                    result_df = df.groupby(target_cat)[target_num].sum().reset_index()
-                    if viz_type in ["line", "area"]:
-                        result_df = result_df.sort_values(target_cat)
-                    else:
-                        result_df = result_df.nlargest(20, target_num)
-                        
-                    result = {
-                        "answer": f"Synthesized analysis of {target_num} by {target_cat}.",
-                        "viz": viz_type,
-                        "data": result_df,
-                        "metadata": {"x": target_cat, "y": target_num}
-                    }
-            except Exception as e:
-                print(f"Agent error: {e}")
-
-        if not result:
-            result = {
-                "answer": "Processing failure for specific dimensions. Providing raw data projection instead.",
+        intent = self._call_llm(prompt)
+        
+        if not intent or "vizzes" not in intent:
+            # Fallback to legacy logic or simple table
+            return {
+                "answer": "I've processed your request. Here is a view of the relevant data.",
                 "viz": "table",
                 "data": df.head(15),
                 "metadata": {"rows": len(df)}
             }
 
-        return self._clean_data(result)
+        visualizations = []
+        for v in intent["vizzes"][:4]:  # Max 4 vizzes for clarity
+            try:
+                working_df = df.copy()
+                # Simple filter application if provided (e.g. "Region == 'West'")
+                # We use a very cautious approach to avoid invalid code execution
+                if v.get("filter"):
+                    try:
+                        # Only support simple equality or inequality for now
+                        # LLM might return "Region == 'West'" or "Year == 2023"
+                        f = v["filter"]
+                        if '==' in f:
+                            f_col, f_val = [x.strip() for x in f.split('==')]
+                            f_val = f_val.strip("'\"")
+                            if f_col in working_df.columns:
+                                # Convert to numeric if possible for comparison
+                                if pd.api.types.is_numeric_dtype(working_df[f_col]):
+                                    try: f_val = float(f_val)
+                                    except: pass
+                                working_df = working_df[working_df[f_col] == f_val]
+                    except:
+                        pass
+                
+                x, y, agg = v.get("x"), v.get("y"), v.get("agg", "sum")
+                
+                if x not in df.columns or (y not in df.columns and agg != "count"):
+                    continue
+
+                if agg == "count":
+                    viz_data = working_df.groupby(x).size().reset_index(name="Count").nlargest(15, "Count")
+                    y = "Count"
+                else:
+                    viz_data = working_df.groupby(x)[y].agg(agg).reset_index()
+                    if v["type"] in ["line", "area"]:
+                        viz_data = viz_data.sort_values(x)
+                    else:
+                        viz_data = viz_data.nlargest(15, y)
+                
+                visualizations.append({
+                    "title": v["title"],
+                    "viz": v["type"],
+                    "data": self._clean_data(viz_data),
+                    "metadata": {"x": x, "y": y}
+                })
+            except:
+                continue
+
+        if not visualizations:
+            return {
+                "answer": "I understood your request but could not map it to visual dimensions. Here is a data projection.",
+                "viz": "table",
+                "data": df.head(15)
+            }
+
+        return {
+            "answer": intent.get("summary", "Synthesis complete."),
+            "viz": "dashboard", # Trigger multi-viz mode
+            "data": {
+                "metrics": [], # Could be populated by LLM too
+                "visualizations": visualizations
+            }
+        }
+
+    def generate_suggestions(self, df: pd.DataFrame) -> List[str]:
+        """Generate dynamic suggestion prompts based on the dataset schema."""
+        cols_info = {col: str(df[col].dtype) for col in df.columns}
+        cat_samples = {col: df[col].dropna().unique()[:5].tolist() for col in df.select_dtypes(exclude=['number']).columns[:5]}
+        
+        prompt = f"""
+        Dataset Columns: {cols_info}
+        Category Samples: {cat_samples}
+        
+        Act as a Data Analyst. Based on this dataset schema, suggest 5 diverse and insightful natural language questions a user might want to ask.
+        The questions should cover:
+        1. A high-level summary (e.g., "Give me a summary of...")
+        2. A trend over time (if date columns exist)
+        3. A comparison between categories
+        4. Performance of top items
+        5. A correlation or breakdown question.
+        
+        Return a JSON object with:
+        "suggestions": ["Question 1", "Question 2", "Question 3", "Question 4", "Question 5"]
+        """
+        
+        intent = self._call_llm(prompt)
+        if intent and "suggestions" in intent:
+            return intent["suggestions"]
+        
+        # Fallback suggestions based on profiling
+        profile = self.profile_dataset(df)
+        fallbacks = ["Show me a dashboard of overall metrics"]
+        for viz in profile.get("visualizations", []):
+            fallbacks.append(viz["title"])
+        return fallbacks[:5]
 
 agent = BIAgent()
