@@ -27,9 +27,21 @@ function Dashboard() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [fileId, setFileId] = useState(() => localStorage.getItem('bi_selected_file'));
-  const [currentAnalysis, setCurrentAnalysis] = useState(null);
-  const [metrics, setMetrics] = useState([]);
-  const [visualizations, setVisualizations] = useState([]);
+  const [currentAnalysis, setCurrentAnalysis] = useState(() => {
+    const id = localStorage.getItem('bi_selected_file');
+    const saved = id ? localStorage.getItem(`bi_analysis_${id}`) : null;
+    try { return saved ? JSON.parse(saved) : null; } catch { return null; }
+  });
+  const [metrics, setMetrics] = useState(() => {
+    const id = localStorage.getItem('bi_selected_file');
+    const saved = id ? localStorage.getItem(`bi_metrics_${id}`) : null;
+    try { return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
+  const [visualizations, setVisualizations] = useState(() => {
+    const id = localStorage.getItem('bi_selected_file');
+    const saved = id ? localStorage.getItem(`bi_visualizations_${id}`) : null;
+    try { return saved ? JSON.parse(saved) : []; } catch { return []; }
+  });
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
@@ -37,24 +49,7 @@ function Dashboard() {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      fetchInitialData();
-    }
-  }, [user]);
-
-  // Fetch dataset-specific history
-  useEffect(() => {
-    if (user && fileId) {
-      loadHistory(fileId);
-    } else if (!fileId) {
-      setMessages([
-        { role: 'ai', content: 'Neural Analytics System Online. Identity verified. Connect your data source to begin synthesis.' }
-      ]);
-    }
-  }, [user, fileId]);
-
-  // Sync state to localStorage
+  // Sync state and Dashboard data to localStorage
   useEffect(() => {
     if (fileId) {
       localStorage.setItem('bi_selected_file', fileId);
@@ -62,6 +57,15 @@ function Dashboard() {
       localStorage.removeItem('bi_selected_file');
     }
   }, [fileId]);
+
+  // Persist metrics and visualizations whenever they change
+  useEffect(() => {
+    if (fileId) {
+      localStorage.setItem(`bi_metrics_${fileId}`, JSON.stringify(metrics));
+      localStorage.setItem(`bi_visualizations_${fileId}`, JSON.stringify(visualizations));
+      localStorage.setItem(`bi_analysis_${fileId}`, JSON.stringify(currentAnalysis));
+    }
+  }, [metrics, visualizations, currentAnalysis]);
 
   const loadHistory = async (id) => {
     try {
@@ -74,9 +78,7 @@ function Dashboard() {
           role: 'ai',
           content: log.response,
           viz: log.viz_type,
-          // Note: we might not have the full data for visuals here, 
-          // usually history is just text, or we can fetch data if needed.
-          // For now, let's keep it simple.
+          data: log.viz_data // If backend provides it in history
         }
       ]);
 
@@ -89,6 +91,36 @@ function Dashboard() {
     }
   };
 
+  // Fetch dataset-specific history and dashboard state updates
+  useEffect(() => {
+    if (user && fileId) {
+      loadHistory(fileId);
+      
+      // Load specific data for this file if it's not already what's in state
+      // This handles the case where the user switches datasets in-app
+      const savedMetrics = localStorage.getItem(`bi_metrics_${fileId}`);
+      const savedVizzies = localStorage.getItem(`bi_visualizations_${fileId}`);
+      const savedAnalysis = localStorage.getItem(`bi_analysis_${fileId}`);
+      
+      setMetrics(savedMetrics ? JSON.parse(savedMetrics) : []);
+      setVisualizations(savedVizzies ? JSON.parse(savedVizzies) : []);
+      setCurrentAnalysis(savedAnalysis ? JSON.parse(savedAnalysis) : null);
+    } else if (!fileId) {
+      setMessages([
+        { role: 'ai', content: 'Neural Analytics System Online. Identity verified. Connect your data source to begin synthesis.' }
+      ]);
+      setMetrics([]);
+      setVisualizations([]);
+      setCurrentAnalysis(null);
+    }
+  }, [user, fileId]);
+
+
+  useEffect(() => {
+    if (user) {
+      fetchInitialData();
+    }
+  }, [user]);
 
   const fetchInitialData = async () => {
     try {
@@ -110,6 +142,12 @@ function Dashboard() {
     try {
       await deleteDataset(filename);
       setDatasets(prev => prev.filter(d => d.filename !== filename));
+      
+      // Cleanup localStorage for this dataset
+      localStorage.removeItem(`bi_metrics_${filename}`);
+      localStorage.removeItem(`bi_visualizations_${filename}`);
+      localStorage.removeItem(`bi_analysis_${filename}`);
+
       if (fileId === filename) {
         setFileId(null);
         setMetrics([]);
